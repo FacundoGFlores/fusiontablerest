@@ -22,7 +22,7 @@ class FusionTableREST:
         )
         self.http_auth = self.credentials.authorize(Http())
         self.service = build("fusiontables", "v2", http=self.http_auth)
-
+         
     def getRows(self, fusiontable_id):
         sql_query = "SELECT * FROM " + fusiontable_id
         request = self.service.query().sql(sql=sql_query)
@@ -42,15 +42,3 @@ class FusionTableREST:
         request = self.service.query().sql(sql=sql_query)
         res = request.execute()
         return res
-
-    def importCSV(self, fusiontable_id, csv_filename):
-        media = MediaFileUpload(
-            data_filename + ".csv",
-            mimetype='application/octet-stream',
-            resumable=True
-        )
-        request = self.service.table().importRows(
-            media_body=media,
-            tableId=fusiontable_id
-        ).execute()
-        return request

@@ -91,4 +91,6 @@ ENV/
 
 # Project specifics
 *.p12
+*.csv
 config.json
+dbconnection.json
