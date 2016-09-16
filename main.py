@@ -9,6 +9,9 @@ def showColumnNames(columns):
     for colname in columns:
         print colname
 
+def toText(s):
+    return "'"+s+"'"
+
 def main():
     p12filename = "Fusionv2-526b826562a0"
     with open("config.json") as data_file:
@@ -20,11 +23,20 @@ def main():
         data["private_key_password"]
     )
     test_fusiontable_id = data["fusiontables_ids"][0]["id"]
-    rows = rest.getRows(test_fusiontable_id)
-    columns = rest.getColumns(test_fusiontable_id)
 
-    printRows(rows)
-    showColumnNames(columns)
+    # rows = rest.getRows(test_fusiontable_id)
+    # columns = rest.getColumns(test_fusiontable_id)
+    #
+    # printRows(rows)
+    # showColumnNames(columns)
+
+    e = rest.insertRow(
+        test_fusiontable_id,
+        ["Text", "Number", "Date"],
+        [toText("Facundo"), "3", toText("2016-09-18")]
+    )
+
+    print e
 
 if __name__ == '__main__':
     main()

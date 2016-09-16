@@ -33,3 +33,11 @@ class FusionTableREST:
         request = self.service.query().sql(sql=sql_query)
         fusiontable = request.execute()
         return fusiontable["columns"]
+
+    def insertRow(self, fusiontable_id, columns, values):
+        sql_query = "INSERT INTO " + fusiontable_id + " "
+        sql_query += "(" + ','.join(columns) + ") "
+        sql_query += "VALUES (" + ','.join(values) + ")"
+        request = self.service.query().sql(sql=sql_query)
+        res = request.execute()
+        return res
