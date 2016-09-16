@@ -1,4 +1,5 @@
 from apiclient.discovery import build
+from apiclient.http import MediaFileUpload
 from httplib2 import Http
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -41,3 +42,15 @@ class FusionTableREST:
         request = self.service.query().sql(sql=sql_query)
         res = request.execute()
         return res
+
+    def importCSV(self, fusiontable_id, csv_filename):
+        media = MediaFileUpload(
+            data_filename + ".csv",
+            mimetype='application/octet-stream',
+            resumable=True
+        )
+        request = self.service.table().importRows(
+            media_body=media,
+            tableId=fusiontable_id
+        ).execute()
+        return request

@@ -30,13 +30,14 @@ def main():
     # printRows(rows)
     # showColumnNames(columns)
 
-    e = rest.insertRow(
-        test_fusiontable_id,
-        ["Text", "Number", "Date"],
-        [toText("Facundo"), "3", toText("2016-09-18")]
-    )
-
-    print e
+    # e = rest.insertRow(
+    #     test_fusiontable_id,
+    #     ["Text", "Number", "Date"],
+    #     [toText("Facundo"), "3", toText("2016-09-18")]
+    # )
+    #
+    # print e
+    r = rest.importCSV(test_fusiontable_id, "data")
 
 if __name__ == '__main__':
     main()
