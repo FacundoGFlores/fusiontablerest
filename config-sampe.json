@@ -1,0 +1,10 @@
+{
+    "client_email": "@developer.gserviceaccount.com",
+    "private_key_password": "notasecret",
+    "fusiontables_ids":[
+        {
+            "id": "tableid",
+            "description": "Description for the table"
+        }
+    ]
+}
