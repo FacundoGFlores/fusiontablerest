@@ -12,6 +12,7 @@ class SQLConnector:
         connection_string += "PWD=" + pwd + ";"
         self.connection = pypyodbc.connect(connection_string)
         self.cursor = self.connection.cursor()
+        print "SQLConnector Cursor Ready!"
 
     def toText(s):
         return "'"+s+"'"
@@ -29,19 +30,27 @@ class SQLConnector:
             ]
         }
 
+    def getPK(self, tablename):
+        # Remember it could be more than one key
+        return self.cursor.primaryKeys(tablename).fetchone()[3].lower()
+
     def runSQLQuery(self, query):
+        print "Executing query"
         self.cursor.execute(query)
 
     def getRows(self):
+        print "Getting rows from db"
         return self._query()["results"]
 
     def getColumns(self):
+        print "Getting columns"
         return [column[0] for column in self.cursor.description]
 
-    def getHeader(self):
+    def getHeaderInfo(self):
         return self.cursor.description
 
     def writeCSV(self, filename, include_headers=True):
+        print "Writing CSV"
         with open(filename + ".csv", "w") as f:
             if include_headers:
                 csv.writer(f).writerow(

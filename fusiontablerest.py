@@ -22,11 +22,13 @@ class FusionTableREST:
         )
         self.http_auth = self.credentials.authorize(Http())
         self.service = build("fusiontables", "v2", http=self.http_auth)
+        print "Fusion Tables RestAPI Ready!"
 
     def getRows(self, fusiontable_id):
         """
             Get rows from fusiontable ID
         """
+        print "Getting rows from fusiontable"
         sql_query = "SELECT * FROM " + fusiontable_id
         request = self.service.query().sql(sql=sql_query)
         fusiontable = request.execute()
@@ -53,7 +55,7 @@ class FusionTableREST:
         res = request.execute()
         return res
 
-    def parseValue(self, odbc_type, val):
+    def _parseValue(self, odbc_type, val):
         """
             Parse python types for fusiontables
         """
@@ -71,6 +73,6 @@ class FusionTableREST:
         values = []
         columns = []
         for c in header:
-            values.append(self.parseValue(c[1], row[c[0]]))
+            values.append(self._parseValue(c[1], row[c[0]]))
             columns.append(c[0])
         return self._insertRow(fusiontable_id, columns, values)
