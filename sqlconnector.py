@@ -13,6 +13,9 @@ class SQLConnector:
         self.connection = pypyodbc.connect(connection_string)
         self.cursor = self.connection.cursor()
 
+    def toText(s):
+        return "'"+s+"'"
+
     def _query(self):
         return {
             'results': [
@@ -22,7 +25,8 @@ class SQLConnector:
                         row
                     )
                 )
-            for row in self.cursor.fetchall()]
+                for row in self.cursor.fetchall()
+            ]
         }
 
     def runSQLQuery(self, query):
@@ -30,6 +34,12 @@ class SQLConnector:
 
     def getRows(self):
         return self._query()["results"]
+
+    def getColumns(self):
+        return [column[0] for column in self.cursor.description]
+
+    def getHeader(self):
+        return self.cursor.description
 
     def writeCSV(self, filename, include_headers=True):
         with open(filename + ".csv", "w") as f:

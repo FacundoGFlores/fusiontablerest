@@ -32,23 +32,26 @@ def setupFusionTable(p12filename):
         p12filename,
         data["private_key_password"]
     )
-    return restapi, data
+    return rest, data
 
 def main():
     con = getConnection()
     con.runSQLQuery("SELECT * FROM KML_Mapa")
     rows = con.getRows()
-    print rows[0].keys()
-    # p12filename = "Fusionv2-526b826562a0"
-    # restapi, data = setupFusionTable(p12filename)
-    #
-    # kml_fusiontable_id = data["fusiontables_ids"][1]["id"]
-    #
-    # e = restapi.insertRow(
-    #     test_fusiontable_id,
-    #     ["idKML", "CodKML", "Date"],
-    #     [toText("Facundo"), "3", toText("2016-09-18")]
-    # )
+    last_row = rows[len(rows) - 1]
+
+    p12filename = "Fusionv2-526b826562a0"
+    restapi, data = setupFusionTable(p12filename)
+
+    kml_fusiontable_id = data["fusiontables_ids"][1]["id"]
+
+    e = restapi.insertRowDict(
+        kml_fusiontable_id,
+        con.getHeader(),
+        last_row
+    )
+
+    print e
 
 if __name__ == '__main__':
     main()
