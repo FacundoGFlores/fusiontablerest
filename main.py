@@ -109,12 +109,14 @@ def parseRoots(dics):
         values.append(listToInt(getFromSquareBrackets(d)))
     return values
 
-def makeAddStatements(table, pkname, npos):
+def makeAddDicts(table, pkname, npos):
+    added = []
     for p in npos:
         pkvalue = table[p[0]].keys()[0]
         d = table[p[0]].values()[0]
         d.update({pkname:pkvalue})
-        print d
+        added.append(d)
+    return added
 
 def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     print "Running diff analyzer"
@@ -130,17 +132,24 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
             ft_columns,
             fusionrows
         )
-    pk = localdb.getPK(tablename)
+    pk = str(localdb.getPK(tablename))
     localTable = makeDictsWithID(localrows, pk)
-    print localTable
     fusionTable = makeDictsWithID(fusiondrows, pk)
-    print fusionTable
     ddiff = DeepDiff(fusionTable, localTable, verbose_level=2)
     added = ddiff['iterable_item_added']
     updated = ddiff['values_changed']
     npos_added = parseRoots(added)
     npos_updated = parseRoots(updated)
-    makeAddStatements(localTable, pk, npos_added)
+    return makeAddDicts(localTable, pk, npos_added)
+
+def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
+    for d in dics:
+        fusiondb.insertRowDict(
+            fusiontable_id,
+            headerinfo,
+            d
+        )
+    print "Rows Inserted!"
 
 def main():
     localdb = getConnection()
@@ -148,12 +157,19 @@ def main():
     fusiondb, data = setupFusionTable(p12filename)
     fusiontable_id = data["fusiontables_ids"][0]["id"]
     tablename = "testPersona";
-    executeDiff(
+    rows_added = executeDiff(
         localdb,
         tablename,
         fusiondb,
         fusiontable_id
     )
+    insertdiffAdd(
+        fusiondb,
+        fusiontable_id,
+        localdb.getHeaderInfo(),
+        rows_added
+    )
+
 
 
 if __name__ == '__main__':

@@ -50,9 +50,10 @@ class FusionTableREST:
         sql_query = "INSERT INTO " + fusiontable_id + " "
         sql_query += "(" + ','.join(map(str,columns)) + ") "
         sql_query += "VALUES (" + ','.join(map(str,values)) + ")"
-        print sql_query
+        print "Inserting row in fusiontable"
         request = self.service.query().sql(sql=sql_query)
         res = request.execute()
+        print "Row inserted!"
         return res
 
     def _parseValue(self, odbc_type, val):
