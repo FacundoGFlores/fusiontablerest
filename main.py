@@ -96,7 +96,7 @@ def auxparse(e):
         pass
     return e
 
-def listToInt(l):
+def castInts(l):
     return list((map(auxparse, l)))
 
 def parseRoots(dics):
@@ -106,7 +106,7 @@ def parseRoots(dics):
     """
     values = []
     for d in dics:
-        values.append(listToInt(getFromSquareBrackets(d)))
+        values.append(castInts(getFromSquareBrackets(d)))
     return values
 
 def makeAddDicts(table, pkname, npos):
