@@ -1,3 +1,4 @@
+import logging, sys
 import json
 import re
 from fusiontablerest import FusionTableREST
@@ -16,7 +17,7 @@ def toText(s):
     return "'"+s+"'"
 
 def getConnection():
-    print "Setting up DB Connection"
+    logging.info("Setting up DB Connection")
     with open("dbconnection.json") as data_file:
         data = json.load(data_file)
     connection = SQLConnector(
@@ -27,7 +28,7 @@ def getConnection():
     return connection
 
 def setupFusionTable(p12filename):
-    print "Setting Up Fusion Table config"
+    logging.info("Setting Up Fusion Table config")
     with open("config.json") as data_file:
         data = json.load(data_file)
 
@@ -119,14 +120,14 @@ def makeAddDicts(table, pkname, npos):
     return added
 
 def executeDiff(localdb, tablename, fusiondb, fusiondbID):
-    print "Running diff analyzer"
+    logging.info("Running diff analyzer")
     localdb.runSQLQuery("SELECT * FROM " + tablename )
     localrows = localdb.getRows()
     fusionrows = fusiondb.getRows(fusiondbID)
     db_columns = [c[0] for c in localdb.getHeaderInfo()]
     ft_columns = fusiondb.getColumns(fusiondbID)
     if db_columns == ft_columns:
-        print "Columns match! Now analyzing"
+        logging.info("Columns match! Now analyzing...")
         fusiondrows = convertFTRowsToDict(
             localdb.getHeaderInfo(),
             ft_columns,
@@ -154,9 +155,10 @@ def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
             headerinfo,
             d
         )
-    print "Insertion complete!"
+    logging.info("Insertion complete!")
 
 def main():
+    logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
     localdb = getConnection()
     p12filename = "Fusionv2-526b826562a0"
     fusiondb, data = setupFusionTable(p12filename)
@@ -169,7 +171,7 @@ def main():
         fusiontable_id
     )
     if len(rows_added):
-        print "Differences found. Now inserting..."
+        logging.info("Differences found. Now inserting...")
         insertdiffAdd(
             fusiondb,
             fusiontable_id,
@@ -177,7 +179,7 @@ def main():
             rows_added
         )
     else:
-        print "Nothing to be done."
+        logging.info("Nothing to be done.")
 
 
 

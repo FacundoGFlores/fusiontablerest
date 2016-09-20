@@ -1,3 +1,4 @@
+import logging
 from apiclient.discovery import build
 from apiclient.http import MediaFileUpload
 from httplib2 import Http
@@ -22,13 +23,13 @@ class FusionTableREST:
         )
         self.http_auth = self.credentials.authorize(Http())
         self.service = build("fusiontables", "v2", http=self.http_auth)
-        print "Fusion Tables RestAPI Ready!"
+        logging.info("Fusion Tables RestAPI Ready!")
 
     def getRows(self, fusiontable_id):
         """
             Get rows from fusiontable ID
         """
-        print "Getting rows from fusiontable"
+        logging.info("Getting rows from fusiontable")
         sql_query = "SELECT * FROM " + fusiontable_id
         request = self.service.query().sql(sql=sql_query)
         fusiontable = request.execute()
@@ -38,6 +39,7 @@ class FusionTableREST:
         """
             Get columns from fusiontable ID
         """
+        logging.info("Getting columns from fusiontable")
         sql_query = "SELECT * FROM " + fusiontable_id
         request = self.service.query().sql(sql=sql_query)
         fusiontable = request.execute()
@@ -50,10 +52,10 @@ class FusionTableREST:
         sql_query = "INSERT INTO " + fusiontable_id + " "
         sql_query += "(" + ','.join(map(str,columns)) + ") "
         sql_query += "VALUES (" + ','.join(map(str,values)) + ")"
-        print "Inserting row in fusiontable"
+        logging.info("Inserting row in fusiontable")
         request = self.service.query().sql(sql=sql_query)
         res = request.execute()
-        print "Row inserted!"
+        logging.info("Row inserted!")
         return res
 
     def _parseValue(self, odbc_type, val):

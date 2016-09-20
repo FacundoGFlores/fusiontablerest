@@ -1,5 +1,6 @@
-import pypyodbc
 import csv
+import logging
+import pypyodbc
 
 class SQLConnector:
     def __init__(
@@ -13,7 +14,7 @@ class SQLConnector:
         self.connection = pypyodbc.connect(connection_string)
         self.cursor = self.connection.cursor()
         self.headerinfo = None
-        print "SQLConnector Cursor Ready!"
+        logging.info("SQLConnector Cursor Ready!")
 
     def toText(s):
         return "'"+s+"'"
@@ -36,27 +37,27 @@ class SQLConnector:
         return self.cursor.primaryKeys(tablename).fetchone()[3].lower()
 
     def runSQLQuery(self, query):
-        print "Executing query"
+        logging.info("Executing query")
         self.cursor.execute(query)
         self.headerinfo = self.cursor.description
 
     def getRows(self):
-        print "Getting rows from db"
+        logging.info("Getting rows from db")
         return self._query()["results"]
 
     def getColumns(self):
-        print "Getting columns"
+        logging.info("Getting columns")
         return [column[0] for column in self.cursor.description]
 
     def getHeaderInfo(self):
         return self.headerinfo
 
     def writeCSV(self, filename, include_headers=True):
-        print "Writing CSV"
+        logging.info("Writing CSV...")
         with open(filename + ".csv", "w") as f:
             if include_headers:
                 csv.writer(f).writerow(
                     [d[0] for d in self.cursor.description]
                 )
             csv.writer(f).writerows(self.cursor)
-            print "CSV wrote!"
+            logging.info("CSV wrote!")
