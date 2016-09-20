@@ -1,4 +1,5 @@
 import json
+import re
 from fusiontablerest import FusionTableREST
 from sqlconnector import SQLConnector
 from deepdiff import DeepDiff
@@ -85,9 +86,38 @@ def makeDictsWithID(dics, pk):
         reestructured.append(new_dict(d, pk))
     return reestructured
 
-def executeDiff(localdb, fusiondb, fusiondbID):
+def getFromSquareBrackets(s):
+    return re.findall(r"\['?([A-Za-z0-9_]+)'?\]", s)
+
+def auxparse(e):
+    try:
+        e = int(e)
+    except:
+        pass
+    return e
+
+def listToInt(l):
+    return list((map(auxparse, l)))
+
+def parseRoots(dics):
+    """
+        Returns pos id for list.
+        Because we have formmatted [{id:{dic}}, {id:{dic}}]
+    """
+    values = []
+    for d in dics:
+        values.append(listToInt(getFromSquareBrackets(d)))
+    return values
+
+def makeAddStatements(table, pkname, npos):
+    for p in npos:
+        pkvalue = table[p[0]].keys()[0]
+        d = table[p[0]].values()[0]
+        d.update({pkname:pkvalue})
+        print d
+
+def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     print "Running diff analyzer"
-    tablename = "KML_Mapa";
     localdb.runSQLQuery("SELECT * FROM " + tablename )
     localrows = localdb.getRows()
     fusionrows = fusiondb.getRows(fusiondbID)
@@ -100,21 +130,30 @@ def executeDiff(localdb, fusiondb, fusiondbID):
             ft_columns,
             fusionrows
         )
-    pk = localdb.getPK("KML_Mapa")
+    pk = localdb.getPK(tablename)
     localTable = makeDictsWithID(localrows, pk)
+    print localTable
     fusionTable = makeDictsWithID(fusiondrows, pk)
-    print localTable[len(localTable)-1]
-    print fusionTable[len(fusionTable)-1]
-    ddiff = DeepDiff(localTable, fusionTable, ignore_order=False)
-    print (ddiff)
+    print fusionTable
+    ddiff = DeepDiff(fusionTable, localTable, verbose_level=2)
+    added = ddiff['iterable_item_added']
+    updated = ddiff['values_changed']
+    npos_added = parseRoots(added)
+    npos_updated = parseRoots(updated)
+    makeAddStatements(localTable, pk, npos_added)
 
 def main():
     localdb = getConnection()
     p12filename = "Fusionv2-526b826562a0"
     fusiondb, data = setupFusionTable(p12filename)
-    fusiontable_id = data["fusiontables_ids"][1]["id"]
-    executeDiff(localdb, fusiondb, fusiontable_id)
-
+    fusiontable_id = data["fusiontables_ids"][0]["id"]
+    tablename = "testPersona";
+    executeDiff(
+        localdb,
+        tablename,
+        fusiondb,
+        fusiontable_id
+    )
 
 
 if __name__ == '__main__':

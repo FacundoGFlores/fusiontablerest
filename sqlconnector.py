@@ -57,3 +57,4 @@ class SQLConnector:
                     [d[0] for d in self.cursor.description]
                 )
             csv.writer(f).writerows(self.cursor)
+            print "CSV wrote!"
