@@ -136,11 +136,16 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     localTable = makeDictsWithID(localrows, pk)
     fusionTable = makeDictsWithID(fusiondrows, pk)
     ddiff = DeepDiff(fusionTable, localTable, verbose_level=2)
-    added = ddiff['iterable_item_added']
-    updated = ddiff['values_changed']
-    npos_added = parseRoots(added)
-    npos_updated = parseRoots(updated)
-    return makeAddDicts(localTable, pk, npos_added)
+    try:
+        added = ddiff['iterable_item_added']
+        #updated = ddiff['values_changed']
+        npos_added = parseRoots(added)
+        #npos_updated = parseRoots(updated)
+        return makeAddDicts(localTable, pk, npos_added)
+    except:
+        return []
+
+
 
 def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
     for d in dics:
@@ -149,7 +154,7 @@ def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
             headerinfo,
             d
         )
-    print "Rows Inserted!"
+    print "Insertion complete!"
 
 def main():
     localdb = getConnection()
@@ -163,12 +168,17 @@ def main():
         fusiondb,
         fusiontable_id
     )
-    insertdiffAdd(
-        fusiondb,
-        fusiontable_id,
-        localdb.getHeaderInfo(),
-        rows_added
-    )
+    if len(rows_added):
+        print "Differences found. Now inserting..."
+        insertdiffAdd(
+            fusiondb,
+            fusiontable_id,
+            localdb.getHeaderInfo(),
+            rows_added
+        )
+    else:
+        print "Nothing to be done."
+
 
 
 
