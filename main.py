@@ -1,5 +1,6 @@
 import logging, sys
 import json
+import datetime
 from ast import literal_eval
 import re
 from fusiontablerest import FusionTableREST
@@ -213,8 +214,26 @@ def main():
             str(localdb.getPK(tablename)),
             rows_updated
         )
+    logger = logging.getLogger('main')
+    nowdate = datetime.datetime.now()
+    strdate = str(nowdate.day) + str(nowdate.month) + str(nowdate.year)
+    strdate += str(nowdate.hour) + str(nowdate.minute)
+    hdlr = logging.FileHandler('ft-' + strdate + '.log')
+    logger.addHandler(hdlr)
+    logger.setLevel(logging.INFO)
     if len(rows_added) == 0 and len(rows_updated) == 0:
-        logging.info("Nothing to be done.")
+        logger.info("Fusion table already Updated!.")
+    else:
+        logger.info("Rows Added: " + str(len(rows_added)))
+        logger.info("Rows Updated: " + str(len(rows_updated)))
+        logger.info("Fusion table Updated!.")
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     main()
