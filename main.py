@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+"""
+    Keep updated a fusiontable from a localdb.
+    There are two config files:
+        - config.json
+        - dbconnection.json
+    config.json has settings for fusiontables
+    dbconnection.json has settings for localdb
+    pypyodbc allow us to connect to SQL Server
+    executeDiff() run queries and diff analyzer for
+    getting differences between fusion table and local db,
+    but it assumes there are no empty tables.
+"""
+
+
 import datetime
 import json
 import logging
@@ -9,6 +24,13 @@ from deepdiff import DeepDiff
 
 from fusiontablerest import FusionTableREST
 from sqlconnector import SQLConnectoriso
+
+__author__ = "Flores, Facundo Gabriel"
+
+__version__ = "0.1.1"
+__maintainer__ = "Flores, Facundo Gabriel"
+__email__ = "flores.facundogabriel@gmail.com"
+__status__ = "Development"
 
 
 def toText(s):

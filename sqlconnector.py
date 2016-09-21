@@ -1,7 +1,20 @@
+#!/usr/bin/env python
+"""
+    This class allow us to interact with SQL Server.
+    Remember to setup the dbconnection.json file
+"""
+
 import csv
 import logging
 
 import pypyodbc
+
+__author__ = "Flores, Facundo Gabriel"
+
+__version__ = "0.1.1"
+__maintainer__ = "Flores, Facundo Gabriel"
+__email__ = "flores.facundogabriel@gmail.com"
+__status__ = "Development"
 
 
 class SQLConnector:

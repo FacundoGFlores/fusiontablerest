@@ -1,9 +1,22 @@
+#!/usr/bin/env python
+"""
+    This class allow us to interact with fusiontables.
+    Remember to setup the config.json file
+"""
+
 import logging
 
 from apiclient.discovery import build
 from apiclient.http import MediaFileUpload
 from httplib2 import Http
 from oauth2client.service_account import ServiceAccountCredentials
+
+__author__ = "Flores, Facundo Gabriel"
+
+__version__ = "0.1.1"
+__maintainer__ = "Flores, Facundo Gabriel"
+__email__ = "flores.facundogabriel@gmail.com"
+__status__ = "Development"
 
 
 class FusionTableREST:
