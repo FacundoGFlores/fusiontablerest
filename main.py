@@ -1,15 +1,19 @@
-import logging, sys
-import json
 import datetime
-from ast import literal_eval
+import json
+import logging
 import re
-from fusiontablerest import FusionTableREST
-from sqlconnector import SQLConnector
+import sys
+from ast import literal_eval
+
 from deepdiff import DeepDiff
+
+from fusiontablerest import FusionTableREST
+from sqlconnector import SQLConnectoriso
 
 
 def toText(s):
-    return "'"+s+"'"
+    return "'" + s + "'"
+
 
 def getConnection():
     logging.info("Setting up DB Connection")
@@ -21,6 +25,7 @@ def getConnection():
         data["dbs"][0]["dbname"]
     )
     return connection
+
 
 def setupFusionTable(p12filename):
     logging.info("Setting Up Fusion Table config")
@@ -34,6 +39,7 @@ def setupFusionTable(p12filename):
     )
     return rest, data
 
+
 def parseVal(coltype, val):
     try:
         if coltype == str:
@@ -44,6 +50,7 @@ def parseVal(coltype, val):
             return bool(val)
     except ValueError:
         return None
+
 
 def makeDictFromFTRow(headerinfo, ftcolumns, ftrow):
     rowDict = {}
@@ -57,6 +64,7 @@ def makeDictFromFTRow(headerinfo, ftcolumns, ftrow):
             rowDict[colname] = parseVal(coltype, ftrow[i])
     return rowDict
 
+
 def convertFTRowsToDict(headerinfo, columns, rows):
     rows_added = []
     for row in rows:
@@ -69,11 +77,13 @@ def convertFTRowsToDict(headerinfo, columns, rows):
             rows_added.append(d)
     return rows_added
 
+
 def new_dict(old_dict, pk):
     n = old_dict.copy()
     pkvalue = n[pk]
     pkpair = n.pop(pk, None)
     return {pkvalue: n}
+
 
 def makeDictsWithID(dics, pk):
     reestructured = []
@@ -81,21 +91,25 @@ def makeDictsWithID(dics, pk):
         reestructured.append(new_dict(d, pk))
     return reestructured
 
+
 def parseRoots(str_diff):
     """
         Returns pos id for list.
         Because we have formmatted [{id:{dic}}, {id:{dic}}]
     """
-    return [tuple(literal_eval(y) for y in re.findall(r"\[('?\w+'?)\]", x)) for x in str_diff]
+    return [tuple(literal_eval(y)
+                  for y in re.findall(r"\[('?\w+'?)\]", x)) for x in str_diff]
+
 
 def makeAddDicts(table, pkname, npos):
     added = []
     for p in npos:
         pkvalue = table[p[0]].keys()[0]
         d = table[p[0]].values()[0]
-        d.update({pkname:pkvalue})
+        d.update({pkname: pkvalue})
         added.append(d)
     return added
+
 
 def makeUpdatedDicts(table, pkname, npos):
     """
@@ -110,7 +124,7 @@ def makeUpdatedDicts(table, pkname, npos):
         pkvalue = p[1]
         column_changed = p[2]
         d = list(table[pos].values())[0]
-        d.update({pkname:pkvalue})
+        d.update({pkname: pkvalue})
         updated.append(d)
     return updated
 
@@ -121,7 +135,7 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     """
     logging.info("Running diff analyzer")
     pk = str(localdb.getPK(tablename))
-    localdb.runSQLQuery("SELECT * FROM " + tablename )
+    localdb.runSQLQuery("SELECT * FROM " + tablename)
     localrows = localdb.getRows()
     fusionrows = fusiondb.getRows(fusiondbID, pk)
     db_columns = [c[0] for c in localdb.getHeaderInfo()]
@@ -150,6 +164,7 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
         dics_updated = []
     return dics_added, dics_updated
 
+
 def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
     for d in dics:
         fusiondb.insertRowDict(
@@ -159,8 +174,10 @@ def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
         )
     logging.info("Insertion completed!")
 
+
 def associateROWIDsWithPK(ftresultforROWIDs):
     return {int(key): value for key, value in ftresultforROWIDs}
+
 
 def insertdiffUpdates(
     fusiondb, fusiontable_id, headerinfo, pk, dics,
@@ -178,20 +195,22 @@ def insertdiffUpdates(
         )
     logging.info("Update completed!")
 
+
 def cleanAndfill(localdb, fusiondb, fusiontable_id, tablename):
     fusiondb.cleanTable(fusiontable_id)
     localdb.runSQLQuery("SELECT * FROM " + tablename)
     localdb.writeCSV("out")
 
+
 def main():
-    logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     logging.propagate = False
     localdb = getConnection()
     p12filename = "Fusionv2-526b826562a0"
     fusiondb, data = setupFusionTable(p12filename)
     fusiontable_id = data["fusiontables_ids"][0]["id"]
-    tablename = "testPersona";
-    #cleanAndfill(localdb, fusiondb, fusiontable_id, tablename)
+    tablename = "testPersona"
+    # cleanAndfill(localdb, fusiondb, fusiontable_id, tablename)
     rows_added, rows_updated = executeDiff(
         localdb,
         tablename,

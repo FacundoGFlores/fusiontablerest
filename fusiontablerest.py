@@ -1,10 +1,13 @@
 import logging
+
 from apiclient.discovery import build
 from apiclient.http import MediaFileUpload
 from httplib2 import Http
 from oauth2client.service_account import ServiceAccountCredentials
 
+
 class FusionTableREST:
+
     def __init__(
         self, client_email, p12filename, private_key_password
     ):
@@ -58,8 +61,8 @@ class FusionTableREST:
             Insert a row
         """
         sql_query = "INSERT INTO " + fusiontable_id + " "
-        sql_query += "(" + ','.join(map(str,columns)) + ") "
-        sql_query += "VALUES (" + ','.join(map(str,values)) + ")"
+        sql_query += "(" + ','.join(map(str, columns)) + ") "
+        sql_query += "VALUES (" + ','.join(map(str, values)) + ")"
         logging.info("Inserting row in fusiontable")
         request = self.service.query().sql(sql=sql_query)
         res = request.execute()

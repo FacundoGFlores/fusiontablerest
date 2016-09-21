@@ -1,8 +1,11 @@
 import csv
 import logging
+
 import pypyodbc
 
+
 class SQLConnector:
+
     def __init__(
         self, server, uid, pwd, dbname
     ):
@@ -17,7 +20,7 @@ class SQLConnector:
         logging.info("SQLConnector Cursor Ready!")
 
     def toText(s):
-        return "'"+s+"'"
+        return "'" + s + "'"
 
     def _query(self):
         return {
