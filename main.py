@@ -172,14 +172,16 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     localTable = makeDictsWithID(localrows, pk)
     fusionTable = makeDictsWithID(fusiondrows, pk)
     ddiff = DeepDiff(fusionTable, localTable, ignore_order=False)
-    if 'iterable_item_added' in ddiff.keys():
-        added = ddiff['iterable_item_added']
+    stradd = 'iterable_item_added'
+    if stradd in ddiff:
+        added = ddiff[stradd]
         npos_added = parseRoots(added)
         dics_added = makeAddDicts(localTable, pk, npos_added)
     else:
         dics_added = []
-    if 'values_changed' in ddiff.keys():
-        updated = ddiff['values_changed']
+    strchanged = 'values_changed'
+    if strchanged in ddiff:
+        updated = ddiff[strchanged]
         npos_updated = parseRoots(updated)
         dics_updated = makeUpdatedDicts(localTable, pk, npos_updated)
     else:
