@@ -23,7 +23,7 @@ from ast import literal_eval
 from deepdiff import DeepDiff
 
 from fusiontablerest import FusionTableREST
-from sqlconnector import SQLConnectoriso
+from sqlconnector import SQLConnector
 
 __author__ = "Flores, Facundo Gabriel"
 

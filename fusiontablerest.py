@@ -115,15 +115,19 @@ class FusionTableREST:
         if odbc_type == int:
             return val
 
-    def insertRowDict(self, fusiontable_id, header, row):
-        """
-            Insert a row formmated as python dict
-        """
+    def getColumnsValuesParsed(self, header, row):
         values = []
         columns = []
         for c in header:
             values.append(self._parseValue(c[1], row[c[0]]))
             columns.append(c[0])
+        return values, columns
+
+    def insertRowDict(self, fusiontable_id, header, row):
+        """
+            Insert a row formmated as python dict
+        """
+        values, columns = self.getColumnsValuesParsed(header, row)
         return self._insertRow(fusiontable_id, columns, values)
 
     def getROWIDs(self, fusiontable_id, pkname):
@@ -136,10 +140,6 @@ class FusionTableREST:
         """
             Update a row formmated as python dict
         """
-        values = []
-        columns = []
-        for c in header:
-            values.append(self._parseValue(c[1], row[c[0]]))
-            columns.append(c[0])
+        values, columns = self.getColumnsValuesParsed(header, row)
         e = self._updateRow(fusiontable_id, ROWIDvalue, columns, values)
         return e
