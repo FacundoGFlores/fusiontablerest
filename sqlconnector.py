@@ -56,8 +56,8 @@ class SQLConnector:
         logging.info("Writing CSV...")
         with open(filename + ".csv", "w") as f:
             if include_headers:
-                csv.writer(f).writerow(
+                csv.writer(f, lineterminator="\n").writerow(
                     [d[0] for d in self.cursor.description]
                 )
-            csv.writer(f).writerows(self.cursor)
+            csv.writer(f, lineterminator="\n").writerows(self.cursor)
             logging.info("CSV wrote!")

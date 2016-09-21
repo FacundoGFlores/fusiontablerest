@@ -7,13 +7,6 @@ from fusiontablerest import FusionTableREST
 from sqlconnector import SQLConnector
 from deepdiff import DeepDiff
 
-def printRows(rows):
-    for r in rows:
-        print r
-
-def showColumnNames(columns):
-    for colname in columns:
-        print colname
 
 def toText(s):
     return "'"+s+"'"
@@ -116,12 +109,16 @@ def makeUpdatedDicts(table, pkname, npos):
         pos = p[0]
         pkvalue = p[1]
         column_changed = p[2]
-        d = table[pos].values()[0]
+        d = list(table[pos].values())[0]
         d.update({pkname:pkvalue})
         updated.append(d)
     return updated
 
+
 def executeDiff(localdb, tablename, fusiondb, fusiondbID):
+    """
+        Important: we are not checking empty tables.
+    """
     logging.info("Running diff analyzer")
     pk = str(localdb.getPK(tablename))
     localdb.runSQLQuery("SELECT * FROM " + tablename )
@@ -136,18 +133,15 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
             ft_columns,
             fusionrows
         )
-
     localTable = makeDictsWithID(localrows, pk)
     fusionTable = makeDictsWithID(fusiondrows, pk)
     ddiff = DeepDiff(fusionTable, localTable, ignore_order=False)
-
     if 'iterable_item_added' in ddiff.keys():
         added = ddiff['iterable_item_added']
         npos_added = parseRoots(added)
         dics_added = makeAddDicts(localTable, pk, npos_added)
     else:
         dics_added = []
-
     if 'values_changed' in ddiff.keys():
         updated = ddiff['values_changed']
         npos_updated = parseRoots(updated)
@@ -184,13 +178,20 @@ def insertdiffUpdates(
         )
     logging.info("Update completed!")
 
+def cleanAndfill(localdb, fusiondb, fusiontable_id, tablename):
+    fusiondb.cleanTable(fusiontable_id)
+    localdb.runSQLQuery("SELECT * FROM " + tablename)
+    localdb.writeCSV("out")
+
 def main():
     logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
+    logging.propagate = False
     localdb = getConnection()
     p12filename = "Fusionv2-526b826562a0"
     fusiondb, data = setupFusionTable(p12filename)
     fusiontable_id = data["fusiontables_ids"][0]["id"]
     tablename = "testPersona";
+    #cleanAndfill(localdb, fusiondb, fusiontable_id, tablename)
     rows_added, rows_updated = executeDiff(
         localdb,
         tablename,

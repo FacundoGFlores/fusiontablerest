@@ -46,6 +46,13 @@ class FusionTableREST:
         fusiontable = request.execute()
         return fusiontable["columns"]
 
+    def cleanTable(self, fusiontable_id):
+        logging.warning("Deleting all rows from fusiontable")
+        sql_query = "DELETE FROM " + fusiontable_id
+        request = self.service.query().sql(sql=sql_query)
+        res = request.execute()
+        return res
+
     def _insertRow(self, fusiontable_id, columns, values):
         """
             Insert a row
@@ -83,6 +90,8 @@ class FusionTableREST:
         """
             Parse python types for fusiontables
         """
+        if val is None:
+            return "''"
         if odbc_type == str:
             return "'" + val + "'"
         if odbc_type == bool:
