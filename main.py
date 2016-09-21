@@ -103,11 +103,29 @@ def makeAddDicts(table, pkname, npos):
         added.append(d)
     return added
 
+def makeUpdatedDicts(table, pkname, npos):
+    """
+        table:
+        pkname:
+        npos: List of tuples of type (pos, pkvalue, colums_changed)
+    """
+    logging.info("Making rows for update...")
+    updated = []
+    for p in npos:
+        pos = p[0]
+        pkvalue = p[1]
+        column_changed = p[2]
+        d = table[pos].values()[0]
+        d.update({pkname:pkvalue})
+        updated.append(d)
+    return updated
+
 def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     logging.info("Running diff analyzer")
+    pk = str(localdb.getPK(tablename))
     localdb.runSQLQuery("SELECT * FROM " + tablename )
     localrows = localdb.getRows()
-    fusionrows = fusiondb.getRows(fusiondbID)
+    fusionrows = fusiondb.getRows(fusiondbID, pk)
     db_columns = [c[0] for c in localdb.getHeaderInfo()]
     ft_columns = fusiondb.getColumns(fusiondbID)
     if db_columns == ft_columns:
@@ -117,18 +135,25 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
             ft_columns,
             fusionrows
         )
-    pk = str(localdb.getPK(tablename))
+
     localTable = makeDictsWithID(localrows, pk)
     fusionTable = makeDictsWithID(fusiondrows, pk)
-    ddiff = DeepDiff(fusionTable, localTable, verbose_level=2)
-    try:
+    ddiff = DeepDiff(fusionTable, localTable, ignore_order=False)
+
+    if 'iterable_item_added' in ddiff.keys():
         added = ddiff['iterable_item_added']
-        #updated = ddiff['values_changed']
         npos_added = parseRoots(added)
-        #npos_updated = parseRoots(updated)
-        return makeAddDicts(localTable, pk, npos_added)
-    except:
-        return []
+        dics_added = makeAddDicts(localTable, pk, npos_added)
+    else:
+        dics_added = []
+
+    if 'values_changed' in ddiff.keys():
+        updated = ddiff['values_changed']
+        npos_updated = parseRoots(updated)
+        dics_updated = makeUpdatedDicts(localTable, pk, npos_updated)
+    else:
+        dics_updated = []
+    return dics_added, dics_updated
 
 def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
     for d in dics:
@@ -137,7 +162,26 @@ def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
             headerinfo,
             d
         )
-    logging.info("Insertion complete!")
+    logging.info("Insertion completed!")
+
+def associateROWIDsWithPK(ftresultforROWIDs):
+    return {int(key): value for key, value in ftresultforROWIDs}
+
+def insertdiffUpdates(
+    fusiondb, fusiontable_id, headerinfo, pk, dics,
+):
+    result = fusiondb.getROWIDs(fusiontable_id, pk)
+    pksassociated = associateROWIDsWithPK(result)
+    for d in dics:
+        pkvalue = d[pk]
+        ROWIDvalue = pksassociated[pkvalue]
+        fusiondb.updateRowDict(
+            fusiontable_id,
+            headerinfo,
+            ROWIDvalue,
+            d
+        )
+    logging.info("Update completed!")
 
 def main():
     logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
@@ -146,7 +190,7 @@ def main():
     fusiondb, data = setupFusionTable(p12filename)
     fusiontable_id = data["fusiontables_ids"][0]["id"]
     tablename = "testPersona";
-    rows_added = executeDiff(
+    rows_added, rows_updated = executeDiff(
         localdb,
         tablename,
         fusiondb,
@@ -160,7 +204,16 @@ def main():
             localdb.getHeaderInfo(),
             rows_added
         )
-    else:
+    if len(rows_updated):
+        logging.info("Differences found. Now updating...")
+        insertdiffUpdates(
+            fusiondb,
+            fusiontable_id,
+            localdb.getHeaderInfo(),
+            str(localdb.getPK(tablename)),
+            rows_updated
+        )
+    if len(rows_added) == 0 and len(rows_updated) == 0:
         logging.info("Nothing to be done.")
 
 if __name__ == '__main__':

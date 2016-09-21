@@ -25,12 +25,13 @@ class FusionTableREST:
         self.service = build("fusiontables", "v2", http=self.http_auth)
         logging.info("Fusion Tables RestAPI Ready!")
 
-    def getRows(self, fusiontable_id):
+    def getRows(self, fusiontable_id, ordercolumn):
         """
             Get rows from fusiontable ID
         """
         logging.info("Getting rows from fusiontable")
         sql_query = "SELECT * FROM " + fusiontable_id
+        sql_query += " ORDER BY " + ordercolumn
         request = self.service.query().sql(sql=sql_query)
         fusiontable = request.execute()
         return fusiontable["rows"]
@@ -58,6 +59,26 @@ class FusionTableREST:
         logging.info("Row inserted!")
         return res
 
+    def _makesets(self, columns, values):
+        setstr = "SET "
+        for i in range(len(columns)):
+            setstr += str(columns[i]) + "=" + str(values[i]) + ", "
+        return setstr[:-2]
+
+    def _updateRow(self, fusiontable_id, ROWIDvalue, columns, values):
+        """
+            Update a row
+        """
+        parsedROWIDvalue = self._parseValue(str, ROWIDvalue)
+        sql_query = "UPDATE " + fusiontable_id + " "
+        sql_query += self._makesets(columns, values) + " "
+        sql_query += "WHERE ROWID" + "=" + parsedROWIDvalue
+        logging.info("Updating a row in fusiontable")
+        request = self.service.query().sql(sql=sql_query)
+        res = request.execute()
+        logging.info("Row updated!")
+        return res
+
     def _parseValue(self, odbc_type, val):
         """
             Parse python types for fusiontables
@@ -79,3 +100,21 @@ class FusionTableREST:
             values.append(self._parseValue(c[1], row[c[0]]))
             columns.append(c[0])
         return self._insertRow(fusiontable_id, columns, values)
+
+    def getROWIDs(self, fusiontable_id, pkname):
+        sql_query = "SELECT " + pkname + ", ROWID FROM " + fusiontable_id
+        request = self.service.query().sql(sql=sql_query)
+        fusiontable = request.execute()
+        return fusiontable["rows"]
+
+    def updateRowDict(self, fusiontable_id, header, ROWIDvalue, row):
+        """
+            Update a row formmated as python dict
+        """
+        values = []
+        columns = []
+        for c in header:
+            values.append(self._parseValue(c[1], row[c[0]]))
+            columns.append(c[0])
+        e = self._updateRow(fusiontable_id, ROWIDvalue, columns, values)
+        return e
