@@ -218,7 +218,7 @@ def main():
     nowdate = datetime.datetime.now()
     strdate = str(nowdate.day) + str(nowdate.month) + str(nowdate.year)
     strdate += str(nowdate.hour) + str(nowdate.minute)
-    hdlr = logging.FileHandler('ft-' + strdate + '.log')
+    hdlr = logging.FileHandler('ft' + strdate + '.log')
     logger.addHandler(hdlr)
     logger.setLevel(logging.INFO)
     if len(rows_added) == 0 and len(rows_updated) == 0:
@@ -227,13 +227,6 @@ def main():
         logger.info("Rows Added: " + str(len(rows_added)))
         logger.info("Rows Updated: " + str(len(rows_updated)))
         logger.info("Fusion table Updated!.")
-
-
-
-
-
-
-
 
 if __name__ == '__main__':
     main()
