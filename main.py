@@ -1,5 +1,6 @@
 import logging, sys
 import json
+from ast import literal_eval
 import re
 from fusiontablerest import FusionTableREST
 from sqlconnector import SQLConnector
@@ -74,7 +75,6 @@ def convertFTRowsToDict(headerinfo, columns, rows):
             rows_added.append(d)
     return rows_added
 
-
 def new_dict(old_dict, pk):
     n = old_dict.copy()
     pkvalue = n[pk]
@@ -87,28 +87,12 @@ def makeDictsWithID(dics, pk):
         reestructured.append(new_dict(d, pk))
     return reestructured
 
-def getFromSquareBrackets(s):
-    return re.findall(r"\['?([A-Za-z0-9_]+)'?\]", s)
-
-def auxparse(e):
-    try:
-        e = int(e)
-    except:
-        pass
-    return e
-
-def castInts(l):
-    return list((map(auxparse, l)))
-
-def parseRoots(dics):
+def parseRoots(str_diff):
     """
         Returns pos id for list.
         Because we have formmatted [{id:{dic}}, {id:{dic}}]
     """
-    values = []
-    for d in dics:
-        values.append(castInts(getFromSquareBrackets(d)))
-    return values
+    return [tuple(literal_eval(y) for y in re.findall(r"\[('?\w+'?)\]", x)) for x in str_diff]
 
 def makeAddDicts(table, pkname, npos):
     added = []
@@ -145,8 +129,6 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
         return makeAddDicts(localTable, pk, npos_added)
     except:
         return []
-
-
 
 def insertdiffAdd(fusiondb, fusiontable_id, headerinfo, dics):
     for d in dics:
