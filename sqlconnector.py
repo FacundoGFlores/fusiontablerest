@@ -6,6 +6,7 @@
 
 import csv
 import logging
+import sys
 
 import pypyodbc
 
@@ -22,15 +23,19 @@ class SQLConnector:
     def __init__(
         self, server, uid, pwd, dbname
     ):
-        connection_string = "DRIVER={SQL Server};"
-        connection_string += "SERVER=" + server + ";"
-        connection_string += "DATABASE=" + dbname + ";"
-        connection_string += "UID=" + uid + ";"
-        connection_string += "PWD=" + pwd + ";"
-        self.connection = pypyodbc.connect(connection_string)
-        self.cursor = self.connection.cursor()
-        self.headerinfo = None
-        logging.info("SQLConnector Cursor Ready!")
+        try:
+            connection_string = "DRIVER={SQL Server};"
+            connection_string += "SERVER=" + server + ";"
+            connection_string += "DATABASE=" + dbname + ";"
+            connection_string += "UID=" + uid + ";"
+            connection_string += "PWD=" + pwd + ";"
+            self.connection = pypyodbc.connect(connection_string)
+            self.cursor = self.connection.cursor()
+            self.headerinfo = None
+            logging.info("SQLConnector Cursor Ready!")
+        except:
+            logging.error("Unable to connect to the SQL SERVER Database")
+            sys.exit(1)
 
     def toText(s):
         return "'" + s + "'"
@@ -54,26 +59,46 @@ class SQLConnector:
 
     def runSQLQuery(self, query):
         logging.info("Executing query")
-        self.cursor.execute(query)
-        self.headerinfo = self.cursor.description
+        try:
+            self.cursor.execute(query)
+            self.headerinfo = self.cursor.description
+        except:
+            logging.error("Unable to get cursor")
+            sys.exit(1)
 
     def getRows(self):
         logging.info("Getting rows from db")
-        return self._query()["results"]
+        try:
+            return self._query()["results"]
+        except:
+            logging.error("Unable to get rows")
+            sys.exit(1)
 
     def getColumns(self):
         logging.info("Getting columns")
-        return [column[0] for column in self.cursor.description]
+        try:
+            return [column[0] for column in self.cursor.description]
+        except:
+            logging.error("Unable to get columns")
+            sys.exit(1)
 
     def getHeaderInfo(self):
-        return self.headerinfo
+        try:
+            return self.headerinfo
+        except:
+            logging.error("Unable to get header info")
+            sys.exit(1)
 
     def writeCSV(self, filename, include_headers=True):
         logging.info("Writing CSV...")
-        with open(filename + ".csv", "w") as f:
-            if include_headers:
-                csv.writer(f, lineterminator="\n").writerow(
-                    [d[0] for d in self.cursor.description]
-                )
-            csv.writer(f, lineterminator="\n").writerows(self.cursor)
-            logging.info("CSV wrote!")
+        try:
+            with open(filename + ".csv", "w") as f:
+                if include_headers:
+                    csv.writer(f, lineterminator="\n").writerow(
+                        [d[0] for d in self.cursor.description]
+                    )
+                csv.writer(f, lineterminator="\n").writerows(self.cursor)
+                logging.info("CSV wrote!")
+        except:
+            logging.error("Unable to write csv file")
+            sys.exit(1)
