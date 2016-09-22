@@ -1,11 +1,13 @@
 {
-    "server": "192.168.0.1",
-    "uid": "username",
-    "pwd": "password",
-    "dbs":[
-        {
-            "dbname": "database name",
-            "description": "database"
-        }
-    ]
+    "dbalias":{
+        "server": "192.168.0.1",
+        "uid": "username",
+        "pwd": "password",
+        "dbs":[
+            {
+                "dbname": "database name",
+                "description": "database"
+            }
+        ]
+    }
 }

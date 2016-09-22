@@ -37,14 +37,14 @@ def toText(s):
     return "'" + s + "'"
 
 
-def getConnection():
+def getConnection(dbalias):
     logging.info("Setting up DB Connection")
     with open("dbconnection.json") as data_file:
         data = json.load(data_file)
     connection = SQLConnector(
-        data["server"],
-        data["uid"], data["pwd"],
-        data["dbs"][0]["dbname"]
+        data[dbalias]["server"],
+        data[dbalias]["uid"], data[dbalias]["pwd"],
+        data[dbalias]["dbs"][0]["dbname"]
     )
     return connection
 
@@ -229,11 +229,11 @@ def cleanAndfill(localdb, fusiondb, fusiontable_id, tablename):
 def main():
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     logging.propagate = False
-    localdb = getConnection()
+    localdb = getConnection("test")
     p12filename = "Fusionv2-526b826562a0"
     fusiondb, data = setupFusionTable(p12filename)
-    fusiontable_id = data["fusiontables_ids"][1]["id"]
-    tablename = data["fusiontables_ids"][1]["localTable"]
+    fusiontable_id = data["fusiontables_ids"][0]["id"]
+    tablename = data["fusiontables_ids"][0]["localTable"]
     logging.info("Working on: " + tablename )
     # cleanAndfill(localdb, fusiondb, fusiontable_id, tablename)
     rows_added, rows_updated = executeDiff(
