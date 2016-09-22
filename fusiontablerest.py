@@ -109,6 +109,7 @@ class FusionTableREST:
         if val is None:
             return "''"
         if odbc_type == str:
+            val = val.replace("'", r"\'")
             return "'" + val + "'"
         if odbc_type == bool:
             return int(val)
