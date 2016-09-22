@@ -5,6 +5,7 @@
 """
 
 import logging
+import re
 
 from apiclient.discovery import build
 from apiclient.http import MediaFileUpload
@@ -109,7 +110,7 @@ class FusionTableREST:
         if val is None:
             return "''"
         if odbc_type == str:
-            val = val.replace("'", r"\'")
+            val = re.sub(r'([\'])', r'\\\1', val)
             return "'" + val + "'"
         if odbc_type == bool:
             return int(val)
