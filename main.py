@@ -126,8 +126,8 @@ def parseRoots(str_diff):
 def makeAddDicts(table, pkname, npos):
     added = []
     for p in npos:
-        pkvalue = table[p[0]].keys()[0]
-        d = table[p[0]].values()[0]
+        pkvalue = list(table[p[0]].keys())[0]
+        d = list(table[p[0]].values())[0]
         d.update({pkname: pkvalue})
         added.append(d)
     return added
@@ -149,6 +149,16 @@ def makeUpdatedDicts(table, pkname, npos):
         d.update({pkname: pkvalue})
         updated.append(d)
     return updated
+
+
+def abstractdiff(name, localTable, m, ddiff, pk):
+    if name in ddiff:
+        npos = parseRoots(ddiff[name])
+        rval = m(localTable, pk, npos)
+    else:
+        rval = []
+
+    return rval
 
 
 def executeDiff(localdb, tablename, fusiondb, fusiondbID):
@@ -173,19 +183,20 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     fusionTable = makeDictsWithID(fusiondrows, pk)
     ddiff = DeepDiff(fusionTable, localTable, ignore_order=False)
     stradd = 'iterable_item_added'
-    if stradd in ddiff:
-        added = ddiff[stradd]
-        npos_added = parseRoots(added)
-        dics_added = makeAddDicts(localTable, pk, npos_added)
-    else:
-        dics_added = []
-    strchanged = 'values_changed'
-    if strchanged in ddiff:
-        updated = ddiff[strchanged]
-        npos_updated = parseRoots(updated)
-        dics_updated = makeUpdatedDicts(localTable, pk, npos_updated)
-    else:
-        dics_updated = []
+    dics_added = abstractdiff(
+        'iterable_item_added',
+        localTable,
+        makeAddDicts,
+        ddiff,
+        pk
+    )
+    dics_updated = abstractdiff(
+        'values_changed',
+        localTable,
+        makeUpdatedDicts,
+        ddiff,
+        pk
+    )
     return dics_added, dics_updated
 
 
@@ -234,7 +245,7 @@ def main():
     fusiondb, data = setupFusionTable(p12filename)
     fusiontable_id = data["fusiontables_ids"][0]["id"]
     tablename = data["fusiontables_ids"][0]["localTable"]
-    logging.info("Working on: " + tablename )
+    logging.info("Working on: " + tablename)
     # cleanAndfill(localdb, fusiondb, fusiontable_id, tablename)
     rows_added, rows_updated = executeDiff(
         localdb,
