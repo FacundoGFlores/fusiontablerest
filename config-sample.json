@@ -4,6 +4,7 @@
     "fusiontables_ids":[
         {
             "id": "tableid",
+            "localTable": "local table related to",
             "description": "Description for the table"
         }
     ]

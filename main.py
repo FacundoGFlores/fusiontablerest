@@ -232,8 +232,9 @@ def main():
     localdb = getConnection()
     p12filename = "Fusionv2-526b826562a0"
     fusiondb, data = setupFusionTable(p12filename)
-    fusiontable_id = data["fusiontables_ids"][0]["id"]
-    tablename = "testPersona"
+    fusiontable_id = data["fusiontables_ids"][1]["id"]
+    tablename = data["fusiontables_ids"][1]["localTable"]
+    logging.info("Working on: " + tablename )
     # cleanAndfill(localdb, fusiondb, fusiontable_id, tablename)
     rows_added, rows_updated = executeDiff(
         localdb,
