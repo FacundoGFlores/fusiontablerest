@@ -6,3 +6,4 @@
 - pyopenssl
 - pypyodbc
 - google-api-python-client
+- deepdiff
