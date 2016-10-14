@@ -32,6 +32,9 @@ __maintainer__ = "Flores, Facundo Gabriel"
 __email__ = "flores.facundogabriel@gmail.com"
 __status__ = "Development"
 
+P12FILENAME = "proyecto-mpi-fe7d33900513"
+DBCONNECTION = "db210"
+
 
 def toText(s):
     return "'" + s + "'"
@@ -182,6 +185,7 @@ def executeDiff(localdb, tablename, fusiondb, fusiondbID):
     localTable = makeDictsWithID(localrows, pk)
     fusionTable = makeDictsWithID(fusiondrows, pk)
     ddiff = DeepDiff(fusionTable, localTable, ignore_order=False)
+    # print (ddiff)
     stradd = 'iterable_item_added'
     dics_added = abstractdiff(
         'iterable_item_added',
@@ -237,16 +241,21 @@ def cleanAndfill(localdb, fusiondb, fusiontable_id, tablename):
     localdb.writeCSV("out")
 
 
+def countUpdates(d, pkname):
+    return len({row[pkname] for row in d})
+
+
 def main():
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     logging.propagate = False
-    localdb = getConnection("test")
-    p12filename = "Fusionv2-526b826562a0"
+    localdb = getConnection(DBCONNECTION)
+    p12filename = P12FILENAME
     fusiondb, data = setupFusionTable(p12filename)
     fusiontable_id = data["fusiontables_ids"][0]["id"]
     tablename = data["fusiontables_ids"][0]["localTable"]
     logging.info("Working on: " + tablename)
     # cleanAndfill(localdb, fusiondb, fusiontable_id, tablename)
+    pkname = str(localdb.getPK(tablename))
     rows_added, rows_updated = executeDiff(
         localdb,
         tablename,
@@ -267,7 +276,7 @@ def main():
             fusiondb,
             fusiontable_id,
             localdb.getHeaderInfo(),
-            str(localdb.getPK(tablename)),
+            pkname,
             rows_updated
         )
     logger = logging.getLogger('main')
@@ -281,7 +290,7 @@ def main():
         logger.info("Fusion table already Updated!.")
     else:
         logger.info("Rows Added: " + str(len(rows_added)))
-        logger.info("Rows Updated: " + str(len(rows_updated)))
+        logger.info("Rows Updated: " + str(countUpdates(rows_updated, pkname)))
         logger.info("Fusion table Updated!.")
 
 if __name__ == '__main__':
